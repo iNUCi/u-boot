@@ -159,6 +159,18 @@ config CI_UDC
 	  Say Y here to enable device controller functionality of the
 	  ChipIdea driver.
 
+config USB_GADGET_LANGWELL
+	bool "Intel Langwell/Penwell/Cloverview device controller"
+	depends on X86
+	depends on DM_USB_GADGET
+	select USB_GADGET_DUALSPEED
+	help
+	  The Intel Langwell/Penwell USB 2.0 device controller found on the
+	  Intel MID platforms Moorestown/Langwell, Medfield/Penwell and
+	  Clover Trail/Cloverview (e.g. Acer Iconia A1-830). On the PCI bus
+	  it enumerates as an 8086:e006 function. Say Y here to enable
+	  gadget (device mode) support.
+
 config USB_GADGET_VBUS_DRAW
 	int "Maximum VBUS Power usage (2-500 mA)"
 	range 2 500
@@ -228,6 +240,16 @@ config USB_FUNCTION_ACM
 	  ACM serial link. This function can be used to create a stdio device to
 	  interoperate with MS-Windows hosts or with the Linux-USB "cdc-acm"
 	  driver.
+
+config USB_ACM_CONNECT_TIMEOUT
+	int "Timeout waiting for CDC ACM host connection (milliseconds)"
+	depends on USB_FUNCTION_ACM
+	default 0
+	help
+	  Timeout to wait for a USB host to enumerate and configure the CDC
+	  ACM device before continuing the boot. The console keeps buffering
+	  output and flushes it once a host shows up. Set to 0 to wait
+	  forever.
 
 endif # USB_GADGET_DOWNLOAD
 

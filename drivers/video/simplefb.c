@@ -9,7 +9,9 @@
 #include <log.h>
 #include <video.h>
 #include <asm/global_data.h>
+#ifdef CONFIG_ARM64
 #include <asm/system.h>
+#endif
 #include <linux/sizes.h>
 
 static int simple_video_probe(struct udevice *dev)

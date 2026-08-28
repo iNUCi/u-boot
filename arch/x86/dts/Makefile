@@ -11,6 +11,7 @@ dtb-y += bayleybay.dtb \
 	cougarcanyon2.dtb \
 	crownbay.dtb \
 	dfi-bt700-q7x-151.dtb \
+	ducati.dtb \
 	edison.dtb \
 	efi-x86_app.dtb \
 	efi-x86_payload.dtb \

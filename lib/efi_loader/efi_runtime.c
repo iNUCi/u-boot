@@ -701,13 +701,32 @@ out:
 	return ret;
 }
 
-static __efi_runtime void efi_relocate_runtime_table(ulong offset)
+/*
+ * Return the base address of the relocated U-Boot image.
+ *
+ * During SetVirtualAddressMap() (map != NULL) we cannot rely on gd being
+ * valid, as on 32-bit x86 gd is read out of the %fs segment which no longer
+ * points at U-Boot's global data when invoked from the OS.  Derive the
+ * relocation base instead from the runtime code descriptor handed to us by
+ * the OS.  add_u_boot_and_runtime() page-aligns __efi_runtime_start to its
+ * EFI_RUNTIME_SERVICES_CODE descriptor, so map->physical_start equals
+ * gd->relocaddr exactly.
+ */
+static __efi_runtime ulong efi_uboot_reloc_base(struct efi_mem_desc *map)
+{
+	if (map)
+		return (ulong)map->physical_start;
+	return gd->relocaddr;
+}
+
+static __efi_runtime void efi_relocate_runtime_table(ulong offset,
+						     struct efi_mem_desc *map)
 {
 	ulong patchoff;
 	void **pos;
 
 	/* Relocate the runtime services pointers */
-	patchoff = offset - gd->relocaddr;
+	patchoff = offset - efi_uboot_reloc_base(map);
 	for (pos = (void **)&efi_runtime_services.get_time;
 	     pos <= (void **)&efi_runtime_services.query_variable_info; ++pos) {
 		if (*pos)
@@ -753,7 +772,8 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map)
 		ulong *p;
 		ulong newaddr;
 
-		p = (void*)((ulong)rel->offset - base) + gd->relocaddr;
+		p = (void*)((ulong)rel->offset - base) +
+		    efi_uboot_reloc_base(map);
 
 		/*
 		 * The runtime services table is updated in
@@ -785,19 +805,14 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map)
 		}
 #endif
 		default:
-			printf("%s: Unknown relocation type %llx\n",
-			       __func__, rel->info & R_MASK);
 			continue;
 		}
 
 		/* Check if the relocation is inside bounds */
 		if (map && ((newaddr < map->virtual_start) ||
 		    newaddr > (map->virtual_start +
-			      (map->num_pages << EFI_PAGE_SHIFT)))) {
-			printf("%s: Relocation at %p is out of range (%lx)\n",
-			       __func__, p, newaddr);
+			      (map->num_pages << EFI_PAGE_SHIFT))))
 			continue;
-		}
 
 		debug("%s: Setting %p to %lx\n", __func__, p, newaddr);
 		*p = newaddr;
@@ -928,10 +943,19 @@ static efi_status_t EFIAPI efi_set_virtual_address_map(
 
 		map = (void*)virtmap + (descriptor_size * i);
 		if (map->type == EFI_RUNTIME_SERVICES_CODE) {
-			ulong new_offset = map->virtual_start -
-					   map->physical_start + gd->relocaddr;
+			/*
+			 * Relocate the runtime section to its virtual
+			 * address.  map->physical_start is the page-aligned
+			 * (relocated) U-Boot base, so new_offset =
+			 * virtual_start relocates every runtime pointer to its
+			 * mapped virtual address (matching the __va()
+			 * identity mapping Linux uses on 32-bit x86).  This
+			 * avoids reading gd, which is not valid in the runtime
+			 * context on 32-bit x86.
+			 */
+			ulong new_offset = map->virtual_start;
 
-			efi_relocate_runtime_table(new_offset);
+			efi_relocate_runtime_table(new_offset, map);
 			efi_runtime_relocate(new_offset, map);
 			ret = EFI_SUCCESS;
 			goto out;

@@ -33,3 +33,4 @@ endif
 endif
 
 obj-$(CONFIG_CI_UDC) += ci_udc.o
+obj-$(CONFIG_USB_GADGET_LANGWELL) += langwell_udc.o
