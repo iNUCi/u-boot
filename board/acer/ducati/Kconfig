@@ -1,0 +1,33 @@
+if VENDOR_ACER
+
+choice
+	prompt "Mainboard model"
+
+config TARGET_DUCATI
+	bool "Acer Iconia A1-830"
+
+endchoice
+
+config SYS_BOARD
+	default "ducati"
+
+config SYS_VENDOR
+	default "acer"
+
+config SYS_SOC
+	default "cloverview"
+
+config SYS_MALLOC_LEN
+	default 0x02000000
+
+config TEXT_BASE
+	default 0x01101000
+
+config BOARD_SPECIFIC_OPTIONS # dummy
+	def_bool y
+	select X86_LOAD_FROM_32_BIT
+	select INTEL_MID
+	select INTEL_CLOVERVIEW
+	select BOARD_LATE_INIT
+
+endif

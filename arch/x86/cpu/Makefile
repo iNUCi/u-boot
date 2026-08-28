@@ -50,6 +50,7 @@ obj-$(CONFIG_SYS_SLIMBOOTLOADER) += slimbootloader/
 obj-$(CONFIG_EFI_CLIENT) += efi/
 obj-$(CONFIG_QEMU) += qemu/
 obj-$(CONFIG_NORTHBRIDGE_INTEL_IVYBRIDGE) += ivybridge/
+obj-$(CONFIG_INTEL_CLOVERVIEW) += cloverview/
 obj-$(CONFIG_INTEL_QUARK) += quark/
 obj-$(CONFIG_INTEL_QUEENSBAY) += queensbay/
 obj-$(CONFIG_INTEL_TANGIER) += tangier/

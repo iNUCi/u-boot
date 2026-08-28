@@ -1,0 +1,112 @@
+// SPDX-License-Identifier: GPL-2.0+
+
+/dts-v1/;
+
+#include <dt-bindings/gpio/x86-gpio.h>
+#include <dt-bindings/interrupt-router/intel-irq.h>
+
+/include/ "skeleton.dtsi"
+/include/ "rtc.dtsi"
+
+#include "tsc_timer.dtsi"
+#include "smbios.dtsi"
+
+/ {
+	model = "Acer Iconia A1-830";
+	compatible = "acer,ducati", "intel,cloverview";
+
+	chosen {
+		stdout-path = "vidconsole";
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			device_type = "cpu";
+			compatible = "cpu-x86";
+			reg = <0>;
+			intel,apic-id = <0>;
+		};
+
+		cpu@1 {
+			device_type = "cpu";
+			compatible = "cpu-x86";
+			reg = <0>;
+			intel,apic-id = <1>;
+		};
+
+		cpu@2 {
+			device_type = "cpu";
+			compatible = "cpu-x86";
+			reg = <0>;
+			intel,apic-id = <2>;
+		};
+
+		cpu@3 {
+			device_type = "cpu";
+			compatible = "cpu-x86";
+			reg = <0>;
+			intel,apic-id = <3>;
+		};
+	};
+
+	pci {
+		compatible = "pci-x86";
+		#address-cells = <3>;
+		#size-cells = <2>;
+		u-boot,dm-pre-reloc;
+		ranges = <0x42000000 0x0 0x40000000 0x40000000 0 0x10000000
+				  0x02000000 0x0 0xd0000000 0xd0000000 0 0x30000000
+				  0x01000000 0x0 0x1000 0x1000 0 0xf000>;
+	};
+
+	fb0: framebuffer@3f000000 {
+		compatible = "simple-framebuffer";
+		reg = <0x3f000000 0x300000>;
+		width = <768>;
+		height = <1024>;
+		stride = <(768 * 4)>;
+		format = "a8r8g8b8";
+	};
+
+	sdcard: mmc@ffa58000 {
+		compatible = "intel,sdhci-tangier";
+		reg = <0xffa58000 0x100>;
+		/*
+		 * In the disconnected state of the SD Card Detection pin
+		 * the read value is always the same and inverted to what
+		 * we are expecting in the code.
+		 */
+		cd-inverted;
+	};
+
+	/*
+	 * Intel Langwell/Penwell USB device controller (8086:e006 on the
+	 * PCI bus at 00:02.3). BAR0 is decoded here by the firmware.
+	 */
+	usb_otg: usb@ffa60000 {
+		compatible = "intel,cloverview-udc";
+		reg = <0xffa60000 0x20000>;
+	};
+
+	pmu: power@ff11d000 {
+		compatible = "intel,pmu-mid";
+		reg = <0xff11d000 0x1000>;
+	};
+
+	scu: ipc@ff11c000 {
+		compatible = "intel,scu-ipc";
+		reg = <0xff11c000 0x1000>;
+	};
+
+	watchdog: wdt@0 {
+		compatible = "intel,tangier-wdt";
+	};
+
+	reset {
+		compatible = "intel,reset-cloverview";
+		bootph-all;
+	};
+};
